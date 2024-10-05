@@ -1,0 +1,23 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "gradle",
+			"id": "/Users/langley/9003/Assignment/inkball_scaffoldruninkball_scaffold",
+			"script": "run",
+			"description": "Runs this project as a JVM application",
+			"group": "application",
+			"project": "inkball_scaffold",
+			"buildFile": "/Users/langley/9003/Assignment/inkball_scaffold/build.gradle",
+			"rootProject": "inkball_scaffold",
+			"projectFolder": "/Users/langley/9003/Assignment/inkball_scaffold",
+			"workspaceFolder": "/Users/langley/9003/Assignment/inkball_scaffold",
+			"args": "",
+			"javaDebug": false,
+			"problemMatcher": [
+				"$gradle"
+			],
+			"label": "gradle: run"
+		}
+	]
+}

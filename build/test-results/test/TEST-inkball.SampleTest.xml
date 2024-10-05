@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="inkball.SampleTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2024-09-12T02:47:12" hostname="langleysuns-mbp.student.wireless.sydney.edu.au" time="0.006">
+<testsuite name="inkball.SampleTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2024-10-05T15:37:09" hostname="Mac.lan" time="0.005">
   <properties/>
-  <testcase name="simpleTest()" classname="inkball.SampleTest" time="0.006"/>
+  <testcase name="simpleTest()" classname="inkball.SampleTest" time="0.005"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
