@@ -4,10 +4,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
+import java.util.Queue;
 
 import inkball.elements.*;
 import processing.core.PApplet;
 import processing.core.PImage;
+import processing.data.JSONArray;
 import processing.data.JSONObject;
 
 public class ConfigLoader {
@@ -17,6 +19,43 @@ public class ConfigLoader {
     public ConfigLoader(String configPath, PApplet app) {
         this.config = app.loadJSONObject(configPath);
         this.app = app;
+    }
+
+    /**
+     * Load level configuration from config file
+     * @param walls
+     * @param spawners
+     * @param holes
+     * @param unspawnedBalls
+     * @param wallImages
+     * @param holeImages
+     * @param tileImage
+     * @param cellSize
+     */
+    public void loadLevelConfig(List<Wall> walls, List<Spawner> spawners, List<Hole> holes, Queue<String> unspawnedBalls, PImage[] wallImages, PImage[] holeImages,PImage spawnImage, PImage tileImage, int cellSize) {
+        JSONObject levelConfig = config.getJSONArray("levels").getJSONObject(0);  // load first level
+        String layout = levelConfig.getString("layout");
+        JSONArray ballsConfig = levelConfig.getJSONArray("balls");
+
+        // add ball colors in ballsConfig to unspawn queue
+        for (int i = 0; i < ballsConfig.size(); i++) {
+            unspawnedBalls.add(ballsConfig.getString(i));
+        }
+
+        // load level layout
+        loadLevel(layout, walls, spawners, holes, wallImages, holeImages, spawnImage, tileImage, cellSize);
+    }
+
+    // get ball spawn interval
+    public float getSpawnInterval() {
+        JSONObject levelConfig = config.getJSONArray("levels").getJSONObject(0); 
+        return levelConfig.getFloat("spawn_interval");
+    }
+
+    // get level time
+    public int getLevelTime() {
+        JSONObject levelConfig = config.getJSONArray("levels").getJSONObject(0); 
+        return levelConfig.getInt("time");
     }
 
     // load level layout from file
