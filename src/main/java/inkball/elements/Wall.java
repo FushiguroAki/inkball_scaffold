@@ -5,8 +5,8 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 public class Wall {
-    int x, y;
-    PImage image;
+    private int x, y;
+    private PImage image;
 
     public Wall(int x, int y, PImage image) {
         this.x = x;

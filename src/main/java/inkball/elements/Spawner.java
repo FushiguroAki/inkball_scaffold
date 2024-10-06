@@ -5,8 +5,8 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 public class Spawner {
-    int x, y;
-    PImage image;
+    private int x, y;
+    private PImage image;
 
     public Spawner(int x, int y, PImage image) {
         this.x = x;
@@ -17,4 +17,13 @@ public class Spawner {
     public void draw(PApplet app) {
         app.image(image, x * App.CELLSIZE, (y+2) * App.CELLSIZE, App.CELLSIZE, App.CELLSIZE);
     }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
 }

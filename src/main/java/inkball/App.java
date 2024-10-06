@@ -16,9 +16,7 @@ import java.util.*;
 import org.checkerframework.checker.units.qual.h;
 
 import inkball.elements.*;
-import inkball.elements.Hole;
-import inkball.elements.Spawner;
-import inkball.elements.Wall;
+import inkball.utils.*;
 
 public class App extends PApplet {
 
@@ -43,11 +41,13 @@ public class App extends PApplet {
 	private List<Wall> walls;
     private List<Spawner> spawners;
     private List<Hole> holes;
+    private List<Ball> balls;
 
     private PImage[] wallImages;
     private PImage spawnerImage;
     private PImage[] holeImages;
     private PImage tileImage;
+    private PImage[] ballImages;
 
     public App() {
         this.configPath = "config.json";
@@ -68,7 +68,7 @@ public class App extends PApplet {
     public void setup() {
         frameRate(FPS);
         loadResources();
-        loadLevel("level1.txt");
+        loadLevelAndBalls();
 		//See PApplet javadoc:
 		//loadJSONObject(configPath)
 		// the image is loaded from relative path: "src/main/resources/inkball/..."
@@ -101,56 +101,29 @@ public class App extends PApplet {
         holeImages[3] = loadImage("src/main/resources/inkball/hole3.png");
         holeImages[4] = loadImage("src/main/resources/inkball/hole4.png");
         
+        ballImages = new PImage[5];
+        ballImages[0] = loadImage("src/main/resources/inkball/ball0.png");
+        ballImages[1] = loadImage("src/main/resources/inkball/ball1.png");
+        ballImages[2] = loadImage("src/main/resources/inkball/ball2.png");
+        ballImages[3] = loadImage("src/main/resources/inkball/ball3.png");
+        ballImages[4] = loadImage("src/main/resources/inkball/ball4.png");
     }
 
     /**
-     * Load the level based on the layout file
+     * Load the level and ball based on the layout file
      */
-    private void loadLevel(String levelPath) {
+    private void loadLevelAndBalls() {
+        ConfigLoader configLoader = new ConfigLoader("config.json", this);
         walls = new ArrayList<>();
         spawners = new ArrayList<>();
         holes = new ArrayList<>();
+        balls = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(levelPath))) {
-            String line;
-            int y = 0;
-            while ((line = reader.readLine()) != null) {
-                for (int x = 0; x < line.length(); x++) {
-                    char tile = line.charAt(x);
-                    switch (tile) {
-                        case 'X':
-                            walls.add(new Wall(x, y, wallImages[0]));
-                            break;
-                        case '1':
-                            walls.add(new Wall(x, y, wallImages[1]));
-                            break;
-                        case '2':
-                            walls.add(new Wall(x, y, wallImages[2]));
-                            break;
-                        case '3':
-                            walls.add(new Wall(x, y, wallImages[3]));
-                            break;
-                        case '4':
-                            walls.add(new Wall(x, y, wallImages[4]));
-                            break;
-                        case 'S':  // Spawner
-                            spawners.add(new Spawner(x, y, spawnerImage));
-                            break;
-                        case 'H':  // Hole
-                            int holeColor = Character.getNumericValue(line.charAt(x + 1));  // get the number next to H, color
-                            holes.add(new Hole(x, y, holeImages[holeColor]));
-                            break;
-                        default:
-                            // empty spaces, tile
-                            image(tileImage, x * CELLSIZE, y * CELLSIZE, CELLSIZE, CELLSIZE);
-                    }
-                }
-                y++;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // elements from config file and level file
+        configLoader.loadLevel("level1.txt", walls, spawners, holes, wallImages, holeImages, spawnerImage ,tileImage, CELLSIZE);
+        configLoader.loadBallsAtSpawners(balls, spawners, ballImages);
     }
+    
 
     /**
      * Receive key pressed signal from the keyboard.
@@ -191,8 +164,6 @@ public class App extends PApplet {
      */
 	@Override
     public void draw() {
-        
-
         //----------------------------------
         //display Board for current level:
         //----------------------------------
@@ -219,6 +190,10 @@ public class App extends PApplet {
 
         for (Hole hole : holes) {
             hole.draw(this);
+        }
+
+        for (Ball ball : balls) {
+            ball.draw(this);
         }
 
         //----------------------------------
