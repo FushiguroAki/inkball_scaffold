@@ -30,13 +30,12 @@ public class ConfigLoader {
      * @param spawners
      * @param holes
      * @param unspawnedBalls
-     * @param wallImages
-     * @param holeImages
-     * @param tileImage
-     * @param cellSize
+     * @param balls
+     * @param resourceManager
+     * @param app
      */
-    public void loadLevelConfig(List<Wall> walls, List<Spawner> spawners, List<Hole> holes, Queue<String> unspawnedBalls, PImage[] wallImages, PImage[] holeImages, PImage spawnerImage, PImage tileImage, int cellSize, List<Ball> balls, Map<String, PImage> ballImagesMap ) {
-        JSONObject levelConfig = config.getJSONArray("levels").getJSONObject(0);  // Load first level
+    public void loadLevelConfig(List<Wall> walls, List<Spawner> spawners, List<Hole> holes, List<String> unspawnedBalls,List<Ball> balls, ResourceManager resourceManager, PApplet app ) {
+        JSONObject levelConfig = config.getJSONArray("levels").getJSONObject(1);  // Load first level
         String layout = levelConfig.getString("layout");
         JSONArray ballsConfig = levelConfig.getJSONArray("balls");
 
@@ -46,7 +45,7 @@ public class ConfigLoader {
         }
 
         // Load level layout
-        loadLevel( layout, walls, spawners, holes, balls, wallImages, holeImages, spawnerImage, tileImage, cellSize, ballImagesMap);
+        loadLevel(layout, walls, spawners, holes, balls, resourceManager);
     }
 
     // Get ball spawn interval
@@ -68,14 +67,9 @@ public class ConfigLoader {
      * @param spawners
      * @param holes
      * @param balls
-     * @param wallImages
-     * @param holeImages
-     * @param spawnerImage
-     * @param tileImage
-     * @param cellSize
-     * @param ballImagesMap
+     * @param resourceManager
      */
-    public void loadLevel(String levelPath, List<Wall> walls, List<Spawner> spawners, List<Hole> holes, List<Ball> balls, PImage[] wallImages, PImage[] holeImages, PImage spawnerImage, PImage tileImage, int cellSize, Map<String, PImage> ballImagesMap)  {
+    public void loadLevel(String levelPath, List<Wall> walls, List<Spawner> spawners, List<Hole> holes, List<Ball> balls, ResourceManager resourceManager)  {
         BufferedReader reader = app.createReader(levelPath);
         if (reader == null) {
             System.err.println("Fail to load level file: " + levelPath);
@@ -95,7 +89,7 @@ public class ConfigLoader {
 
                     switch (tile) {
                         case 'X':   // Wall
-                            walls.add(new Wall(x, y, wallImages[0]));
+                            walls.add(new Wall(x, y, resourceManager.getImage("wall0")));
                             x++;
                             break;
 
@@ -103,13 +97,13 @@ public class ConfigLoader {
                         case '2':
                         case '3':
                         case '4':
-                            int wallIndex = Character.getNumericValue(tile) - 1; // Convert char to int and adjust index
-                            walls.add(new Wall(x, y, wallImages[wallIndex + 1]));
+                            int wallIndex = Character.getNumericValue(tile);
+                            walls.add(new Wall(x, y, resourceManager.getImage("wall" + wallIndex)));
                             x++;
                             break;
 
                         case 'S':   // Spawner
-                            spawners.add(new Spawner(x, y, spawnerImage));
+                            spawners.add(new Spawner(x, y, resourceManager.getImage("spawner")));
                             x++;
                             break;
 
@@ -118,7 +112,7 @@ public class ConfigLoader {
                                 char holeColorChar = line.charAt(x + 1);
                                 int holeColorIndex = Character.getNumericValue(holeColorChar);
                                 if (holeColorIndex >= 0 && holeColorIndex < COLOR_MAPPINGS.length) {
-                                    PImage holeImage = holeImages[holeColorIndex];
+                                    PImage holeImage = resourceManager.getImage("hole" + holeColorIndex);
                                     holes.add(new Hole(x, y, holeImage));
                                     x += 2; // Skip the next character as it's part of the hole definition
                                 } else {
@@ -137,7 +131,7 @@ public class ConfigLoader {
                                 int ballColorIndex = Character.getNumericValue(ballColorChar);
                                 if (ballColorIndex >= 0 && ballColorIndex < COLOR_MAPPINGS.length) {
                                     String colorName = COLOR_MAPPINGS[ballColorIndex];
-                                    PImage ballImage = ballImagesMap.get(colorName);
+                                    PImage ballImage = resourceManager.getImage(colorName);
                                     if (ballImage != null) {
                                         balls.add(new Ball(x, y, ballImage));
                                     } else {

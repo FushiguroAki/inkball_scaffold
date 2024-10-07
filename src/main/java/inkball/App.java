@@ -40,28 +40,20 @@ public class App extends PApplet {
     public static final int FPS = 30;
 
     public String configPath;
+    private Board board;
+    private ResourceManager resourceManager;
+    private ConfigLoader configLoader;
 
     public static Random random = new Random();
 
     private static final int MAX_UNSPAWNED_DISPLAY = 5; // max num of unspawned balls show on top left
-    private static final int MOVE_SPEED = 1;  // unspawned ball move anima speed 1px/f
-
-	private List<Wall> walls;
-    private List<Spawner> spawners;
-    private List<Hole> holes;
-    private List<Ball> balls;
-    
-    private PImage[] wallImages;
-    private PImage spawnerImage;
-    private PImage[] holeImages;
-    private PImage tileImage;
+    private static final int MOVE_SPEED = 1;  // unspawned ball move anima speed 1px/f    
     
     private float spawnInterval;  // time interval between ball spawn
     private long lastSpawnTime;  // last time a ball spawn
    
-    private Queue<String> unspawnedBallsQueue;
+    private List<String> unspawnedBallsQueue;
     private List<UnspawnedBall> displayedUnspawnedBalls;
-    private Map<String, PImage> ballImagesMap;
     private boolean isAnimating = false;  // flag for top left unspawned ball move animation
     private int slotOffset = 0; // offset of the slot during animation
     private int animationProgress = 0; // tracks progress of the animation
@@ -83,74 +75,39 @@ public class App extends PApplet {
     }
 
     /**
-     * Load all resources such as images. Initialise the elements such as the player and map elements.
+     * Load all resources such as images. Initialise the elements
      */
 	@Override
     public void setup() {
         frameRate(FPS);
-        loadResources();
+        resourceManager = new ResourceManager(this);
+        configLoader = new ConfigLoader(configPath, this);
+        board = new Board(resourceManager);
+        unspawnedBallsQueue = new ArrayList<>();
+        displayedUnspawnedBalls = new ArrayList<>();
         loadLevelAndBalls();
         spawnNextBall();    // spawn first ball immediately
         lastSpawnTime = millis();  // record start time
-		
+		lastTimeUpdate = millis() / 1000;
     }
 
-    /**
-     * load elements' image resources from file path
-     */
-    private void loadResources() {
-        tileImage = loadImage("src/main/resources/inkball/tile.png");
-
-        wallImages = new PImage[5];
-        wallImages[0] = loadImage("src/main/resources/inkball/wall0.png");
-        wallImages[1] = loadImage("src/main/resources/inkball/wall1.png");
-        wallImages[2] = loadImage("src/main/resources/inkball/wall2.png");
-        wallImages[3] = loadImage("src/main/resources/inkball/wall3.png");
-        wallImages[4] = loadImage("src/main/resources/inkball/wall4.png");
-
-        spawnerImage = loadImage("src/main/resources/inkball/entrypoint.png");
-
-        holeImages = new PImage[5];
-        holeImages[0] = loadImage("src/main/resources/inkball/hole0.png");
-        holeImages[1] = loadImage("src/main/resources/inkball/hole1.png");
-        holeImages[2] = loadImage("src/main/resources/inkball/hole2.png");
-        holeImages[3] = loadImage("src/main/resources/inkball/hole3.png");
-        holeImages[4] = loadImage("src/main/resources/inkball/hole4.png");
-
-        ballImagesMap = new HashMap<>();
-        ballImagesMap.put("grey", loadImage("src/main/resources/inkball/ball0.png"));
-        ballImagesMap.put("orange", loadImage("src/main/resources/inkball/ball1.png"));
-        ballImagesMap.put("blue", loadImage("src/main/resources/inkball/ball2.png"));
-        ballImagesMap.put("green", loadImage("src/main/resources/inkball/ball3.png"));
-        ballImagesMap.put("yellow", loadImage("src/main/resources/inkball/ball4.png"));
-    }
 
     /**
      * Load the level and ball based on the layout file
      */
     private void loadLevelAndBalls() {
-        ConfigLoader configLoader = new ConfigLoader("config.json", this);
-        walls = new ArrayList<>();
-        spawners = new ArrayList<>();
-        holes = new ArrayList<>();
-        balls = new ArrayList<>();
-        unspawnedBallsQueue = new LinkedList<>();
-        displayedUnspawnedBalls = new ArrayList<>();
-
         // elements from config file and level file
-        configLoader.loadLevelConfig(walls, spawners, holes, unspawnedBallsQueue, wallImages, holeImages, spawnerImage, tileImage, CELLSIZE, balls, ballImagesMap);
+        board.loadLevel(configLoader, unspawnedBallsQueue, this);
         spawnInterval = configLoader.getSpawnInterval();  // ball spawn interval
         timeLeft = configLoader.getLevelTime();  // set initial level time left
 
         score = 0;
 
-        lastTimeUpdate = millis() / 1000;  // convert to seconds
-
         // Initialize displayedUnspawnedBalls
         int initialDisplayCount = Math.min(unspawnedBallsQueue.size(), MAX_UNSPAWNED_DISPLAY);
         for (int i = 0; i < initialDisplayCount; i++) {
-            String color = unspawnedBallsQueue.poll();
-            PImage ballImage = ballImagesMap.get(color);
+            String color = unspawnedBallsQueue.remove(0);
+            PImage ballImage = resourceManager.getImage(color);
             displayedUnspawnedBalls.add(new UnspawnedBall(color, ballImage));
         }
     }
@@ -234,30 +191,16 @@ public class App extends PApplet {
 
         drawUnspawnedBalls();
 
-        // draw from the 3rd row
-        // draw tiles as background
+        // Draw tiles as background
+        PImage tileImage = resourceManager.getImage("tile");
         for (int y = 0; y < HEIGHT / CELLSIZE; y++) {
             for (int x = 0; x < WIDTH / CELLSIZE; x++) {
                 image(tileImage, x * CELLSIZE, (y + 2) * CELLSIZE, CELLSIZE, CELLSIZE);
             }
         }
 
-        // draw other elements
-        for (Wall wall : walls) {
-            wall.draw(this);
-        }
-
-        for (Spawner spawner : spawners) {
-            spawner.draw(this);
-        }
-
-        for (Hole hole : holes) {
-            hole.draw(this);
-        }
-
-        for (Ball ball : balls) {
-            ball.draw(this);
-        }
+        // Update and draw on board elements
+        board.draw(this);
 
         //----------------------------------
         //display score
@@ -277,7 +220,7 @@ public class App extends PApplet {
         animationProgress += MOVE_SPEED;
         slotOffset -= MOVE_SPEED;
     
-        if (animationProgress >= 32) {
+        if (animationProgress >= CELLSIZE) {
             // Animation completed
             slotOffset = 0; // reset slotOffset for next cycle
             return true;
@@ -306,20 +249,23 @@ public class App extends PApplet {
         if (!displayedUnspawnedBalls.isEmpty()) {
             // Remove the first ball and spawn it
             UnspawnedBall nextBall = displayedUnspawnedBalls.remove(0);
-            PImage ballImage = ballImagesMap.get(nextBall.getColor());
+            PImage ballImage = resourceManager.getImage(nextBall.getColor());
     
             // Randomly choose a spawner
-            int randomSpawnerIndex = (int) random(spawners.size());
-            Spawner spawner = spawners.get(randomSpawnerIndex);
-    
-            // Spawn the ball at the spawner
-            balls.add(new Ball(spawner.getX(), spawner.getY(), ballImage));
+            List<Spawner> spawners = board.getSpawners();
+            if (!spawners.isEmpty()) {
+                int randomSpawnerIndex = (int) random(spawners.size());
+                Spawner spawner = spawners.get(randomSpawnerIndex);
+
+                // Spawn the ball at the spawner
+                board.getBalls().add(new Ball(spawner.getX(), spawner.getY(), ballImage));
+            }
         }
     
         // Add a new ball to the display list if there are more in the queue
         if (displayedUnspawnedBalls.size() < MAX_UNSPAWNED_DISPLAY && !unspawnedBallsQueue.isEmpty()) {
-            String color = unspawnedBallsQueue.poll();
-            PImage ballImage = ballImagesMap.get(color);
+            String color = unspawnedBallsQueue.remove(0);
+            PImage ballImage = resourceManager.getImage(color);
             displayedUnspawnedBalls.add(new UnspawnedBall(color, ballImage));
         }
     }
