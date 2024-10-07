@@ -36,7 +36,7 @@ public class ConfigLoader {
      * @param cellSize
      */
     public void loadLevelConfig(List<Wall> walls, List<Spawner> spawners, List<Hole> holes, Queue<String> unspawnedBalls, PImage[] wallImages, PImage[] holeImages, PImage spawnerImage, PImage tileImage, int cellSize, List<Ball> balls, Map<String, PImage> ballImagesMap ) {
-        JSONObject levelConfig = config.getJSONArray("levels").getJSONObject(1);  // Load first level
+        JSONObject levelConfig = config.getJSONArray("levels").getJSONObject(0);  // Load first level
         String layout = levelConfig.getString("layout");
         JSONArray ballsConfig = levelConfig.getJSONArray("balls");
 

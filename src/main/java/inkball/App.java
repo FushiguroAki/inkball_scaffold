@@ -14,6 +14,7 @@ import java.io.*;
 import java.util.*;
 
 import org.checkerframework.checker.units.qual.h;
+import org.checkerframework.checker.units.qual.s;
 
 import inkball.elements.*;
 import inkball.elements.Ball;
@@ -64,6 +65,10 @@ public class App extends PApplet {
     private boolean isAnimating = false;  // flag for top left unspawned ball move animation
     private int slotOffset = 0; // offset of the slot during animation
     private int animationProgress = 0; // tracks progress of the animation
+
+    private int score;
+    private int timeLeft;   // level time left
+    private long lastTimeUpdate;  // manage time decrement
 
     public App() {
         this.configPath = "config.json";
@@ -135,7 +140,11 @@ public class App extends PApplet {
         // elements from config file and level file
         configLoader.loadLevelConfig(walls, spawners, holes, unspawnedBallsQueue, wallImages, holeImages, spawnerImage, tileImage, CELLSIZE, balls, ballImagesMap);
         spawnInterval = configLoader.getSpawnInterval();  // ball spawn interval
-        // time = configLoader.getLevelTime();  // each level time limit
+        timeLeft = configLoader.getLevelTime();  // set initial level time left
+
+        score = 0;
+
+        lastTimeUpdate = millis() / 1000;  // convert to seconds
 
         // Initialize displayedUnspawnedBalls
         int initialDisplayCount = Math.min(unspawnedBallsQueue.size(), MAX_UNSPAWNED_DISPLAY);
@@ -192,6 +201,18 @@ public class App extends PApplet {
         background(200);    // clear and set background color gray
 
         // TODO draw TOPBAR
+        // Update timeLeft every second
+        long currentTime = millis() / 1000; // Get current time in seconds
+        if (currentTime - lastTimeUpdate >= 1) {
+            timeLeft--;
+            lastTimeUpdate = currentTime;
+        }
+
+        // timeLeft doesn't go below zero
+        if (timeLeft < 0) {
+            timeLeft = 0;
+            // TODO handle end of level or game over
+        }
 
         // Check if time to start animation
         if (!isAnimating && !displayedUnspawnedBalls.isEmpty() && millis() - lastSpawnTime >= spawnInterval * 1000) {
@@ -241,7 +262,7 @@ public class App extends PApplet {
         //----------------------------------
         //display score
         //----------------------------------
-        //TODO
+        drawScoreAndTime();
         
 		//----------------------------------
         //----------------------------------
@@ -301,6 +322,27 @@ public class App extends PApplet {
             PImage ballImage = ballImagesMap.get(color);
             displayedUnspawnedBalls.add(new UnspawnedBall(color, ballImage));
         }
+    }
+
+    /**
+     * draw score and timer on top right
+     */
+    private void drawScoreAndTime() {
+        fill(0); // text color black
+        textSize(20);
+    
+        String scoreText = "Score: " + score;
+        String timeText = "Time: " + timeLeft;
+    
+        // Calculate positions based on the screen width
+        float scoreX = width - textWidth(scoreText) - 20;
+        float scoreY = 25;
+    
+        float timeX = width - textWidth(timeText) - 20;
+        float timeY = 55;
+    
+        text(scoreText, scoreX, scoreY);
+        text(timeText, timeX, timeY);
     }
 
 
