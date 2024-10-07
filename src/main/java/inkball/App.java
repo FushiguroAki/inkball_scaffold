@@ -62,6 +62,9 @@ public class App extends PApplet {
     private int timeLeft;   // level time left
     private long lastTimeUpdate;  // manage time decrement
 
+    private float spawnTimer;   // timer for ball spawn
+    private long lastTimerUpdate;   // manage timer decrement 0.1 seconds
+
     public App() {
         this.configPath = "config.json";
     }
@@ -89,6 +92,8 @@ public class App extends PApplet {
         spawnNextBall();    // spawn first ball immediately
         lastSpawnTime = millis();  // record start time
 		lastTimeUpdate = millis() / 1000;
+        spawnTimer = spawnInterval;
+        lastTimerUpdate = millis();
     }
 
 
@@ -157,7 +162,6 @@ public class App extends PApplet {
         //----------------------------------
         background(200);    // clear and set background color gray
 
-        // TODO draw TOPBAR
         // Update timeLeft every second
         long currentTime = millis() / 1000; // Get current time in seconds
         if (currentTime - lastTimeUpdate >= 1) {
@@ -171,14 +175,6 @@ public class App extends PApplet {
             // TODO handle end of level or game over
         }
 
-        // Check if time to start animation
-        if (!isAnimating && !displayedUnspawnedBalls.isEmpty() && millis() - lastSpawnTime >= spawnInterval * 1000) {
-            isAnimating = true;
-            lastSpawnTime = millis();
-            animationProgress = 0;
-            slotOffset = 0;
-        }
-
         if (isAnimating) {
             boolean animationComplete = updateUnspawnedBallsAnimation();
     
@@ -188,6 +184,8 @@ public class App extends PApplet {
                 spawnNextBall();
             }
         }
+
+        updateSpawnTimer();
 
         drawUnspawnedBalls();
 
@@ -206,6 +204,8 @@ public class App extends PApplet {
         //display score
         //----------------------------------
         drawScoreAndTime();
+
+        drawSpawnTimer();
         
 		//----------------------------------
         //----------------------------------
@@ -233,7 +233,7 @@ public class App extends PApplet {
      * draw unspawned balls on top left
      */
     private void drawUnspawnedBalls() {
-        int yOffset = 20;
+        int yOffset = 16;
     
         for (int i = 0; i < displayedUnspawnedBalls.size(); i++) {
             UnspawnedBall ub = displayedUnspawnedBalls.get(i);
@@ -282,7 +282,7 @@ public class App extends PApplet {
     
         // Calculate positions based on the screen width
         float scoreX = width - textWidth(scoreText) - 20;
-        float scoreY = 25;
+        float scoreY = 27;
     
         float timeX = width - textWidth(timeText) - 20;
         float timeY = 55;
@@ -291,7 +291,47 @@ public class App extends PApplet {
         text(timeText, timeX, timeY);
     }
 
+    /**
+     * update spawn timer every 0.1 seconds，
+     * spawn a ball and animation when timer reaches 0
+     */
+    private void updateSpawnTimer() {
+        // calculate the time difference between current time and the last update time
+        long currentTime = millis();
+        if (currentTime - lastTimerUpdate >= 100) {
+            spawnTimer -= 0.1f;
+            lastTimerUpdate = currentTime;
+    
+            if (spawnTimer < 0) {
+                spawnTimer = 0;
+            }
+        }
+    
+        // when timer reaches 0, reset timer and start animation
+        if (spawnTimer <= 0 && !isAnimating && !displayedUnspawnedBalls.isEmpty()) {
+            isAnimating = true;
+            lastSpawnTime = millis();
+            animationProgress = 0;
+            slotOffset = 0;
+            spawnTimer = spawnInterval; // reset timer
+        }
+    }
 
+    /**
+     * draw spawn timer on top left
+     */
+    private void drawSpawnTimer() {
+        fill(0); // text color black
+        textSize(16);
+    
+        String timerText = String.format("%.1f s", spawnTimer);
+    
+        // position
+        int xOffset = 170;
+        int yOffset = 38;
+    
+        text(timerText, xOffset, yOffset);
+    }
 
     public static void main(String[] args) {
         PApplet.main("inkball.App");
