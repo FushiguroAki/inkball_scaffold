@@ -162,33 +162,6 @@ public class App extends PApplet {
         //----------------------------------
         background(200);    // clear and set background color gray
 
-        // Update timeLeft every second
-        long currentTime = millis() / 1000; // Get current time in seconds
-        if (currentTime - lastTimeUpdate >= 1) {
-            timeLeft--;
-            lastTimeUpdate = currentTime;
-        }
-
-        // timeLeft doesn't go below zero
-        if (timeLeft < 0) {
-            timeLeft = 0;
-            // TODO handle end of level or game over
-        }
-
-        if (isAnimating) {
-            boolean animationComplete = updateUnspawnedBallsAnimation();
-    
-            if (animationComplete) {
-                isAnimating = false;
-                // after animation, remove the first ball and adjust displayedUnspawnedBalls
-                spawnNextBall();
-            }
-        }
-
-        updateSpawnTimer();
-
-        drawUnspawnedBalls();
-
         // Draw tiles as background
         PImage tileImage = resourceManager.getImage("tile");
         for (int y = 0; y < HEIGHT / CELLSIZE; y++) {
@@ -197,15 +170,44 @@ public class App extends PApplet {
             }
         }
 
-        // Update and draw on board elements
+        // Update elements on the board
+        board.update(); 
+
+        updateSpawnTimer();
+        
+        if (isAnimating) {
+            boolean animationComplete = updateUnspawnedBallsAnimation();
+            
+            if (animationComplete) {
+                isAnimating = false;
+                // after animation, remove the first ball and adjust displayedUnspawnedBalls
+                spawnNextBall();
+            }
+        }
+        
         board.draw(this);
+        
+        drawUnspawnedBalls();
+        drawSpawnTimer();
+        
+        // Update timeLeft every second
+        long currentTime = millis() / 1000; // Get current time in seconds
+        if (currentTime - lastTimeUpdate >= 1) {
+            timeLeft--;
+            lastTimeUpdate = currentTime;
+        }
+        
+        // timeLeft doesn't go below zero
+        if (timeLeft < 0) {
+            timeLeft = 0;
+            // TODO handle end of level or game over
+        }
 
         //----------------------------------
         //display score
         //----------------------------------
         drawScoreAndTime();
 
-        drawSpawnTimer();
         
 		//----------------------------------
         //----------------------------------
@@ -257,8 +259,10 @@ public class App extends PApplet {
                 int randomSpawnerIndex = (int) random(spawners.size());
                 Spawner spawner = spawners.get(randomSpawnerIndex);
 
-                // Spawn the ball at the spawner
-                board.getBalls().add(new Ball(spawner.getX(), spawner.getY(), ballImage));
+                // Spawn the ball at the spawner with random velocity
+                // board.getBalls().add(new Ball(spawner.getX(), spawner.getY(), ballImage));
+                Ball newBall = new Ball(spawner.getX(), spawner.getY(), ballImage);
+                board.getBalls().add(newBall);
             }
         }
     

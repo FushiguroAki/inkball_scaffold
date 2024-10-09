@@ -44,6 +44,12 @@ public class Board {
         }
     }
 
+    public void update() {
+        for (Ball ball : balls) {
+            ball.move();
+        }
+    }
+    
     public List<Spawner> getSpawners() {
         return spawners;
     }
@@ -51,5 +57,6 @@ public class Board {
     public List<Ball> getBalls() {
         return balls;
     }
+
 
 }

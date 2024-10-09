@@ -50,13 +50,13 @@ public class ConfigLoader {
 
     // Get ball spawn interval
     public float getSpawnInterval() {
-        JSONObject levelConfig = config.getJSONArray("levels").getJSONObject(0);
+        JSONObject levelConfig = config.getJSONArray("levels").getJSONObject(1);
         return levelConfig.getFloat("spawn_interval");
     }
 
     // Get level time
     public int getLevelTime() {
-        JSONObject levelConfig = config.getJSONArray("levels").getJSONObject(0);
+        JSONObject levelConfig = config.getJSONArray("levels").getJSONObject(1);
         return levelConfig.getInt("time");
     }
 
