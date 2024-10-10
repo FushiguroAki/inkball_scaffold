@@ -2,6 +2,7 @@ package inkball;
 
 import processing.core.PApplet;
 import processing.core.PImage;
+import processing.core.PVector;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
 import processing.event.KeyEvent;
@@ -18,9 +19,8 @@ import org.checkerframework.checker.units.qual.s;
 
 import inkball.elements.*;
 import inkball.elements.Ball;
-import inkball.elements.Hole;
+import inkball.elements.Line;
 import inkball.elements.Spawner;
-import inkball.elements.Wall;
 import inkball.utils.*;
 
 public class App extends PApplet {
@@ -65,6 +65,9 @@ public class App extends PApplet {
     private float spawnTimer;   // timer for ball spawn
     private long lastTimerUpdate;   // manage timer decrement 0.1 seconds
 
+    private List<Line> lines = new ArrayList<Line>();
+    private Line currentLine = null;
+
     public App() {
         this.configPath = "config.json";
     }
@@ -85,7 +88,7 @@ public class App extends PApplet {
         frameRate(FPS);
         resourceManager = new ResourceManager(this);
         configLoader = new ConfigLoader(configPath, this);
-        board = new Board(resourceManager);
+        board = new Board(this, resourceManager);
         unspawnedBallsQueue = new ArrayList<>();
         displayedUnspawnedBalls = new ArrayList<>();
         loadLevelAndBalls();
@@ -134,23 +137,24 @@ public class App extends PApplet {
         
     }
 
-    @Override
-    public void mousePressed(MouseEvent e) {
-        // create a new player-drawn line object
+    public void mousePressed() {
+        board.mousePressed();
     }
-	
-	@Override
-    public void mouseDragged(MouseEvent e) {
-        // add line segments to player-drawn line object if left mouse button is held
-		
-		// remove player-drawn line object if right mouse button is held 
-		// and mouse position collides with the line
+
+    public void mouseDragged() {
+        board.mouseDragged();
+    }
+
+    public void mouseReleased() {
+        board.mouseReleased();
     }
 
     @Override
-    public void mouseReleased(MouseEvent e) {
-		
+    public void mouseClicked(MouseEvent e) {
+		// TODO remove player-drawn line object if right mouse button is held 
+		// and mouse position collides with the line
     }
+
 
     /**
      * Draw all elements in the game by current frame.
@@ -208,7 +212,6 @@ public class App extends PApplet {
         //----------------------------------
         drawScoreAndTime();
 
-        
 		//----------------------------------
         //----------------------------------
 		//display game end message
@@ -340,5 +343,6 @@ public class App extends PApplet {
     public static void main(String[] args) {
         PApplet.main("inkball.App");
     }
+
 
 }
