@@ -46,6 +46,7 @@ public class ConfigLoader {
 
         // Load level layout
         loadLevel(layout, walls, spawners, holes, balls, resourceManager);
+        System.out.println("Total number of walls: " + walls.size());
     }
 
     // Get ball spawn interval

@@ -6,7 +6,8 @@ public class Vector2D {
     public float y;
 
     public Vector2D(float randomVelocity, float randomVelocity2) {
-        //TODO Auto-generated constructor stub
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'add'");
     }
 
     public void add(Vector2D velocity) {

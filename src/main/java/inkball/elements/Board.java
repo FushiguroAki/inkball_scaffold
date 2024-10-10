@@ -25,6 +25,15 @@ public class Board {
     public void loadLevel(ConfigLoader configLoader, List<String> unspawnedBalls, PApplet app) {
         configLoader.loadLevelConfig(walls, spawners, holes, unspawnedBalls, balls, resourceManager, app);
     }
+    
+    public void update() {
+        for (Ball ball : balls) {
+            ball.move();
+            ball.updateCooldown();
+        }
+        // TODO handle collisions
+        CollisionManager.handleCollisions(balls, walls, holes);
+    }
 
     public void draw(PApplet app) {
         for (Wall wall : walls) {
@@ -41,12 +50,6 @@ public class Board {
 
         for (Ball ball : balls) {
             ball.draw(app);
-        }
-    }
-
-    public void update() {
-        for (Ball ball : balls) {
-            ball.move();
         }
     }
     

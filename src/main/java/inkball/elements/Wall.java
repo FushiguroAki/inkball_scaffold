@@ -5,16 +5,35 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 public class Wall {
-    private int x, y;
+    private int gridX;
+    private int gridY;
     private PImage image;
 
-    public Wall(int x, int y, PImage image) {
-        this.x = x;
-        this.y = y;
+    public Wall(int gridX, int gridY, PImage image) {
+        this.gridX = gridX;
+        this.gridY = gridY;
         this.image = image;
     }
 
     public void draw(PApplet app) {
-        app.image(image, x * App.CELLSIZE, (y+2) * App.CELLSIZE, App.CELLSIZE, App.CELLSIZE);
+        float pixelX = gridX * App.CELLSIZE;
+        float pixelY = (gridY + 2) * App.CELLSIZE;
+        app.image(image, pixelX, pixelY, App.CELLSIZE, App.CELLSIZE);
+    }
+
+    public int getX() {
+        return gridX;
+    }
+
+    public int getY() {
+        return gridY;
+    }
+
+    public PImage getImage() {
+        return image;
+    }
+
+    public void setImage(PImage image) {
+        this.image = image;
     }
 }
