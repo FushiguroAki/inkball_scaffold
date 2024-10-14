@@ -228,7 +228,7 @@ public class CollisionManager {
     }
 
     private static void checkCollisionWithHole(Ball ball, Hole hole) {
-        // TODO: 实现球与洞的碰撞检测
+        // TODO: Implement collision detection between ball and hole
         
     }
 

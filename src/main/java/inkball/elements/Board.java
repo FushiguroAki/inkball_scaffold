@@ -39,8 +39,11 @@ public class Board {
         for (Ball ball : balls) {
             ball.move();
             ball.updateCooldown();
+
+            for (Hole hole : holes) {
+                hole.attractBall(ball);
+            }
         }
-        // TODO handle collisions
         CollisionManager.handleCollisions(balls, walls, holes);
         CollisionManager.handleBallLineCollisions(balls, lines);
     }

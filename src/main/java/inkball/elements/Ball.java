@@ -24,13 +24,16 @@ public class Ball {
     }
 
     private float getRandomVelocity() {
-        return Math.random() < 0.5 ? -2.0f : 2.0f;
+        float velocity = Math.random() < 0.5 ? -2.0f : 2.0f;
+        System.out.println("Initial velocity: " + velocity);
+        return velocity;
     }
     
     public void move() {
         x += dx;
         y += dy;
-
+        System.out.println("Ball position updated to: (" + x + ", " + y + ")");
+        System.out.println("Ball velocity: (" + dx + ", " + dy + ")");
         updateCooldown();
     }
     
@@ -103,5 +106,9 @@ public class Ball {
         return image;
     }
 
-
+    public void applyForce(float fx, float fy) {
+        this.dx += fx;
+        this.dy += fy;
+        System.out.println("Ball velocity updated to: (" + dx + ", " + dy + ")");
+    }
 }
