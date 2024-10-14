@@ -3,6 +3,7 @@ package inkball.elements;
 import inkball.App;
 import inkball.utils.*;
 import processing.core.PApplet;
+import processing.core.PConstants;
 import processing.core.PImage;
 import processing.core.PVector;
 
@@ -88,26 +89,46 @@ public class Board {
         }
     }
 
+    @SuppressWarnings("deprecation")
     public void mousePressed() {
         float mouseX = app.mouseX;
         float mouseY = app.mouseY;
+        boolean isCtrlOrCommandPressed = false;
+
+        if (app.keyEvent != null) {
+            isCtrlOrCommandPressed = app.keyEvent.isControlDown() || app.keyEvent.isMetaDown();
+        }
 
         // create a new player-drawn line object
         if (app.mouseButton == PApplet.LEFT && isInGameArea(mouseX, mouseY)) {
             // create a new line object
             currentLine = new Line(10, app.color(0));
-            currentLine.addPoint(app.mouseX, app.mouseY);
+            currentLine.addPoint(mouseX, mouseY);
             lines.add(currentLine);
+        } // ctrl + left or right to delete line
+        else if ((app.mouseButton == PConstants.LEFT && isCtrlOrCommandPressed) ||
+        app.mouseButton == PConstants.RIGHT) {
+            // System.out.println("Key Code: " + app.keyCode);
+            Line line = getLineAtPosition(mouseX, mouseY);
+            if (line != null) {
+                lines.remove(line);
+            }
         }
+
+        System.out.println("keyEvent: " + app.keyEvent);
+        if (app.keyEvent != null) {
+            System.out.println("isControlDown: " + app.keyEvent.isControlDown());
+            System.out.println("isMetaDown: " + app.keyEvent.isMetaDown());
+}
     }
 	
     public void mouseDragged() {
         float mouseX = app.mouseX;
         float mouseY = app.mouseY;
-        
+
         // add line segments to player-drawn line object if left mouse button is held
 		if (app.mouseButton == PApplet.LEFT && currentLine != null && isInGameArea(mouseX, mouseY)) {
-            currentLine.addPoint(app.mouseX, app.mouseY);   // add point to the current line
+            currentLine.addPoint(mouseX, mouseY);   // add point to the current line
         }
     }
 
@@ -130,4 +151,67 @@ public class Board {
     return x >= gameAreaLeft && x <= gameAreaRight && y >= gameAreaTop && y <= gameAreaBottom;
 }
 
+    /**
+     * check the position click has a line
+     */
+    private Line getLineAtPosition(float x, float y) {
+        // set detection threshold
+        float threshold = 5.0f;
+    
+        // go through the line list from back to front, prioritize the newest line
+        for (int i = lines.size() - 1; i >= 0; i--) {
+            Line line = lines.get(i);
+            List<PVector> points = line.getPoints();
+    
+            // go through all line segments
+            for (int j = 0; j < points.size() - 1; j++) {
+                PVector p1 = points.get(j);
+                PVector p2 = points.get(j + 1);
+    
+                // shortest distance from the point to the line segment
+                float distance = pointToSegmentDistance(x, y, p1.x, p1.y, p2.x, p2.y);
+    
+                if (distance <= threshold) {
+                    return line;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * calculate the shortest distance from a point to a line segment
+     */
+    private float pointToSegmentDistance(float px, float py, float x1, float y1, float x2, float y2) {
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+    
+        if (dx == 0 && dy == 0) {
+            // two end points of the line segment overlap
+            dx = px - x1;
+            dy = py - y1;
+            return PApplet.sqrt(dx * dx + dy * dy);
+        }
+    
+        // t calculate projection parameter t
+        float t = ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy);
+    
+        if (t < 0) {
+            // the nearest point is before the line segment
+            dx = px - x1;
+            dy = py - y1;
+        } else if (t > 1) {
+            // after the line segment
+            dx = px - x2;
+            dy = py - y2;
+        } else {
+            // on the line segment
+            float nearX = x1 + t * dx;
+            float nearY = y1 + t * dy;
+            dx = px - nearX;
+            dy = py - nearY;
+        }
+    
+        return PApplet.sqrt(dx * dx + dy * dy);
+    }
 }
