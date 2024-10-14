@@ -178,14 +178,14 @@ public class CollisionManager {
                     PVector normal = new PVector(-dy, dx);
                     normal.normalize();
 
-                    // Calculate the dot product
-                    PVector velocity = new PVector(ball.getDx(), ball.getDy());
-                    float dotProduct = velocity.dot(normal);
-
-                    // Calculate the new velocity
-                    PVector newVelocity = PVector.sub(velocity, PVector.mult(normal, 2 * dotProduct));
-                    ball.setDx(newVelocity.x);
-                    ball.setDy(newVelocity.y);
+                    // Check if the line is nearly vertical
+                    if (Math.abs(dx) < Math.abs(dy)) {
+                        // Treat as a vertical wall collision
+                        ball.reverseDirectionX();
+                    } else {
+                        // Treat as a horizontal wall collision
+                        ball.reverseDirectionY();
+                    }
 
                     // Reset collision cooldown
                     ball.resetCooldown();
