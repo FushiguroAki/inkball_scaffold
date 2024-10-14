@@ -1,11 +1,15 @@
 package inkball.utils;
 
 import inkball.elements.*;
+import processing.core.PApplet;
+import processing.core.PVector;
 import inkball.App;
 
 import java.util.List;
 
 public class CollisionManager {
+
+    private static final float LINE_WIDTH = 10f;
 
     public static void handleCollisions(List<Ball> balls, List<Wall> walls, List<Hole> holes) {
         for (Ball ball : balls) {
@@ -144,6 +148,84 @@ public class CollisionManager {
         ballB.setDy(vyB - impulseY);
     }
 
+    /**
+     * ball and line collision
+     * @param ball
+     * @param lines
+     */
+    public static void handleBallLineCollisions(List<Ball> balls, List<Line> lines) {
+        for (Ball ball : balls) {
+            checkCollisionWithLines(ball, lines);
+        }
+    }
+
+    private static void checkCollisionWithLines(Ball ball, List<Line> lines) {
+        for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++) {
+            Line line = lines.get(lineIndex);
+            List<PVector> points = line.getPoints();
+            for (int i = 0; i < points.size() - 1; i++) {
+                PVector p1 = points.get(i);
+                PVector p2 = points.get(i + 1);
+
+                // Calculate the distance from the ball's center to the line segment
+                float distance = pointToSegmentDistance(ball.getX() + ball.getRadius(), ball.getY() + ball.getRadius(), p1.x, p1.y, p2.x, p2.y);
+
+                // Check if the distance is less than or equal to the sum of the ball's radius and half the line's thickness
+                if (distance <= ball.getRadius() + line.getThickness() / 2) {
+                    // Calculate normal vector
+                    float dx = p2.x - p1.x;
+                    float dy = p2.y - p1.y;
+                    PVector normal = new PVector(-dy, dx);
+                    normal.normalize();
+
+                    // Calculate the dot product
+                    PVector velocity = new PVector(ball.getDx(), ball.getDy());
+                    float dotProduct = velocity.dot(normal);
+
+                    // Calculate the new velocity
+                    PVector newVelocity = PVector.sub(velocity, PVector.mult(normal, 2 * dotProduct));
+                    ball.setDx(newVelocity.x);
+                    ball.setDy(newVelocity.y);
+
+                    // Reset collision cooldown
+                    ball.resetCooldown();
+
+                    // Remove the line after collision
+                    lines.remove(lineIndex);
+                    return; // Exit after removing the line to avoid concurrent modification
+                }
+            }
+        }
+    }
+
+    // Helper method to calculate the shortest distance from a point to a line segment
+    private static float pointToSegmentDistance(float px, float py, float x1, float y1, float x2, float y2) {
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+
+        if (dx == 0 && dy == 0) {
+            dx = px - x1;
+            dy = py - y1;
+            return PApplet.sqrt(dx * dx + dy * dy);
+        }
+
+        float t = ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy);
+
+        if (t < 0) {
+            dx = px - x1;
+            dy = py - y1;
+        } else if (t > 1) {
+            dx = px - x2;
+            dy = py - y2;
+        } else {
+            float nearX = x1 + t * dx;
+            float nearY = y1 + t * dy;
+            dx = px - nearX;
+            dy = py - nearY;
+        }
+
+        return PApplet.sqrt(dx * dx + dy * dy);
+    }
 
     private static void checkCollisionWithHole(Ball ball, Hole hole) {
         // TODO: 实现球与洞的碰撞检测

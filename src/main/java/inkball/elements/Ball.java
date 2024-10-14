@@ -19,6 +19,10 @@ public class Ball {
         this.dy = getRandomVelocity();
     }
 
+    public float getRadius() {
+        return App.CELLSIZE / 2;
+    }
+
     private float getRandomVelocity() {
         return Math.random() < 0.5 ? -2.0f : 2.0f;
     }

@@ -42,6 +42,7 @@ public class Board {
         }
         // TODO handle collisions
         CollisionManager.handleCollisions(balls, walls, holes);
+        CollisionManager.handleBallLineCollisions(balls, lines);
     }
 
     public void draw(PApplet app) {
